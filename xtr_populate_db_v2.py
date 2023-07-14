@@ -7,8 +7,6 @@ from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func
-
-
 #from alphavantage import get_listing_status,get_intraday_data, get_stock_data,get_intraday_data_extended,get_daily_data
 from alphavantage import av_get_intraday_data_extended,av_get_daily_data
 from xmodels import xTimeseries, Base
@@ -29,85 +27,35 @@ import logging
 def elapsed_time_in_hms(start_time):
     end_time = time.time()
     elapsed_time = end_time - start_time
-
     hours, remainder = divmod(elapsed_time, 3600)
     minutes, seconds = divmod(remainder, 60)
-
     return int(hours), int(minutes), seconds, elapsed_time
 
-
-
-
-
-##########################################################
 echo = False
-
 alphabets = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-#alphabets = "ABCD"
-
-def generate_strings():
-    for letter1 in alphabets:
-        yield letter1
-
-def db_name(selector):
-    name = f"D:\\xtrade\\xtrade_{selector}.db"
-    return name
-
-sessions = []
-dbs = []
-for a in alphabets:
-    db = create_engine("sqlite:///" + db_name(a),echo=echo)
-    dbs.append(db)           
-    Base.metadata.create_all(db)
-    Session = sessionmaker()
-    Session.configure(bind=db)
-    sessions.append(Session())
-    print(f"db engine and session created for {db_name(a)}")
-#    session = Session()
-
-    
-def session_chooser(symbol:str):
-    selector = symbol[0].upper()
-#    print("session for",symbol,"is",selector,", database is", )
-    index = alphabets.index(selector)
-    session = sessions[index]
-    return session
- 
-
-###################################
-
-
-
-
 
 def do_timelogging(start_time,text1="",text2="",text3=""):
     hours, minutes, seconds,elapsed_seconds = elapsed_time_in_hms(start_time)
     logging.info(f"Elapsed time: {hours} hours, {minutes} minutes, {seconds:.2f} seconds - {text1}/{text2}/{text3}")
 
-
 def secret_get_api_key():
     api_key = "8DXUHZW7UO1P3QIM"
     return api_key
-
 
 def sqldb_populate_with_daily_data(symbol,outputsize):
     start_time = time.time()
     print(start_time)
     api_key = secret_get_api_key()
     session = session_chooser(symbol)
-    logging.info(f"{symbol} start DAILY load to database - {outputsize}")        
-        
+    logging.info(f"{symbol} start DAILY load to database - {outputsize}")               
     data = av_get_daily_data(api_key,symbol,outputsize)
-    print(data)
-    meta_data = data['Meta Data']
-   # print(meta_data)
+ #   meta_data = data['Meta Data']
     time_series_data = data['Time Series (Daily)']
     count =  exists_count = 0
     for timestamp, ts_data in time_series_data.items():
         try:
             datetime_string = f"{timestamp} 20:00:00"
-            ts = datetime.strptime(datetime_string, '%Y-%m-%d %H:%M:%S')
-            
+            ts = datetime.strptime(datetime_string, '%Y-%m-%d %H:%M:%S')        
         except:
             print("can not generate timestamp", timestamp)
             continue
@@ -129,14 +77,9 @@ def sqldb_populate_with_intraday_extended_data(symbol,lastmonth_only=True,interv
     symbols = symbol
 
     print(symbols)
-    # stop running here
-    #return
-    
-    #for symbol in symbols:
     print(f"We start with {symbol}")
-   # return
     session = session_chooser(symbol)
-    interval = "5min" # Placeholder interval value, replace it as needed
+    interval = "5min" # Hardcoded interval value, replace it as needed
 
     if lastmonth_only:
         slices = ["year1month1"]
@@ -155,14 +98,12 @@ def sqldb_populate_with_intraday_extended_data(symbol,lastmonth_only=True,interv
             time.sleep(12 - call_time_delta)
         call_time = time.time()
         data = av_get_intraday_data_extended(api_key=api_key, symbol=symbol, interval=interval, slice=slice)
-        #  print(data)
-        #  print(data["Meta Data"])
 
         timeseries_key = next((key for key in data.keys() if "Time Series" in key), None)
         if timeseries_key:
             for t, row in data[timeseries_key].items():
-                print("---------------------------------")
-                print(f"time: {t}, data: {row}")
+                mapping = {'1. open': 'open', '2. high': 'high', '3. low': 'low', '4. close': 'close', '5. volume': 'volume'}
+                row = {mapping[k]: v for k, v in row.items()}
 
                 count = count + 1
                 if (count % 500) == 0:
@@ -173,10 +114,11 @@ def sqldb_populate_with_intraday_extended_data(symbol,lastmonth_only=True,interv
                 except ValueError:
                     print("can not generate timestamp", row)
                     continue
-                print(f"time: {t}, data: {row}")
+                #print(f"time: {t}, data: {row}")
+                
                 xts_obj, exists = xTimeseries.insert_if_not_exist(session, symbol=symbol, function='TIME_SERIES_INTRADAY_EXTENDED',
                                                                     interval=interval, time=ts, json_data=row)
-                #time.sleep(10)
+                
                 session.commit()
 
                 if exists:
@@ -185,10 +127,6 @@ def sqldb_populate_with_intraday_extended_data(symbol,lastmonth_only=True,interv
         logging.info(f"count {count} exits_count {exists_count}")
 
         do_timelogging(start_time, text1=symbol, text2="final", text3=str(count))
-
-
-#    session.commit()    
-
 
 def populate_intraday_data(symbols,lastmonth_only=True):
     print("Polulate intraday data")
@@ -210,10 +148,10 @@ def import_action(symbols,load):
     if load == "full":
         #populate_daily_data(symbols,outputsize="full")
         #populate_intraday_data(symbols,lastmonth_only=False)
-        print("Not full atm")
+        print("Not working atm")
     else:
         print(symbols)
-       # populate_daily_data(symbols,outputsize="compact")
+      #  populate_daily_data(symbols,outputsize="compact")
         populate_intraday_data(symbols,lastmonth_only=True)
 
 def export_action(symbols):
@@ -242,10 +180,9 @@ def main():
     sessions = session_list()
     symbols = xTimeseries.get_all_symbols(sessions)
     print(symbols)
-    print(args.symbols)
-    print(args.load)
-    import_action(symbols,args.load) 
+    import_action(symbols,"refresh") 
 
+    """
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:
@@ -258,13 +195,14 @@ def main():
 
         if not args.load:
             logging.info(f"the --load argument was not given, using the {args.load} as default (please check the --help to verify options)")
-        import_action(args.symbols,args.load)                        
+        import_action(symbols,args.load)                        
     elif args.action == "statistics":
         statistic_action()
     elif args.action == "export":
         export_action(args.symbols)
     else:
         print("error")
+    """
 if __name__ == "__main__":
     main()
 

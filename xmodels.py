@@ -54,14 +54,14 @@ class xNews(Base):
     @classmethod
     def insert_if_not_exist(cls, session: Session, title: str, function: str, url: str, time: datetime, json_data: dict):
         # Check if the row already exists in the database
-        print("insert if not....",url)
-        print(session)
-        print(title)
-        print(function)
-        print(url)
-        print(time)
-        print(json_data)
-        exit(0)
+    #    print("insert if not....",url)
+    #    print(session)
+    #    print(title)
+    #    print(function)
+    #    print(url)
+    #    print(time)
+    #    print(json_data)
+    #    exit(0)
 #        print("insert if not....",url)
         existing_row = session.query(cls).filter_by(url=url).first()
         if existing_row is not None:
@@ -294,9 +294,6 @@ class xTimeseries(Base):
     @classmethod
     # xTimeseries.insert_if_not_exist(session, symbol=symbol, function='TIME_SERIES_INTRADAY_EXTENDED', interval=interval, time=ts, json_data=row)
     def insert_if_not_exist(cls, session: Session, symbol: str, function: str, interval: str, time: datetime, json_data: dict):
-        print("....insert if not exist....",symbol,function,interval,time)
-        print("....insert if not exist....",json_data)
-        time.sleep(10)
         # Check if the row already exists in the database
         existing_row = session.query(cls).filter_by(symbol=symbol, function=function, interval=interval, time=time).first()
         if existing_row is not None:
@@ -304,8 +301,6 @@ class xTimeseries(Base):
             return existing_row,True
         
         # If the row does not exist, create a new instance and add it to the session
- #       print("....insert if not exist....",symbol,function,interval,time,"-->NEW")
-
         new_row = cls(symbol=symbol, function=function, interval=interval, time=time, json_data=json_data)
         session.add(new_row)
         return new_row,False

@@ -63,13 +63,11 @@ def do_timelogging(start_time,text1="",text2="",text3=""):
 # never have your secret key like this.... do not put this to git...
 def secret_get_api_key():
     api_key = "D3SGMGI6LOJSA5FN"
+    api_key = "<Your Api Key Here>"
     return api_key
-
-
-                            
+                          
 def sqldb_populate_news(time_from,time_to,topics,limit):
     news_dict = av_get_news(api_key=secret_get_api_key(),time_from=time_from,time_to=time_to,topics=topics,limit=limit)
-    #news_feed_list = news_dict["feed"]
     news_feed_list = news_dict.get("feed", [])
     count =  exists_count = 0
     for news in news_feed_list:
@@ -81,7 +79,6 @@ def sqldb_populate_news(time_from,time_to,topics,limit):
         overall_sentiment_score = news["overall_sentiment_score"]
 #        datetime_string = f"{time} 20:00:00" #20230422T123400
         ts = datetime.strptime(time, '%Y%m%dT%H%M%S')
-#        exit(0)
         print(f"insert {title}")
         news_obj,exists = xNews.insert_if_not_exist(session, title=title, function='NEWS_SENTIMENT', url=url, time=ts, json_data=news) 
         for topic in topics:
@@ -278,11 +275,6 @@ def news_statistics_summary(date_start,date_end,exportfolder):
                     print(" - ",row)
                 writer2.writerow(row)
             print("total number of ticker rows",date,len(news_list3))           
-
-
-
-
-
         else:
             print("...",from_date,"no data")
         from_date = from_date + timedelta(days = 1)

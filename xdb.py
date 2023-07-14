@@ -16,20 +16,11 @@ def db_name(selector):
 
 sessions = []
 dbs = []
-
 folder = "d:\\xtrade\db"
 
-
+import os
 for a in alphabets:
-  #  db = create_engine("sqlite:///" + folder + "/" +  db_name(a),echo=echo)
-    #create_engine("sqlite:///" +r"D:\xtrade\db\xtrade_news.db",echo=echo)
-  #  db = create_engine("sqlite:///D:\\xtrade\\db\\xtrade_" + a, echo=echo)
-    db = create_engine(f"sqlite:///D:\\xtrade\\db\\xtrade_{a}.db", echo=echo)
-
-
-   # print("sqlite:///D:\\xtrade\\db\\xtrade_" + a)
-    # "D:\xtrade\db\xtrade_N.db"
-
+    db = create_engine("sqlite:///" + folder + "/" +  db_name(a),echo=echo)
 
     print(db)
     dbs.append(db)           
@@ -37,14 +28,13 @@ for a in alphabets:
     Session = sessionmaker()
     Session.configure(bind=db)
     sessions.append(Session())
-#    session = Session()
+
 print(f"db engine and session created for multiple databases to folder {folder}")
 
 
 
 def session_chooser(symbol:str):
     selector = symbol[0].upper()
-#    print("session for",symbol,"is",selector,", database is", )
     index = alphabets.index(selector)
     session = sessions[index]
     print("session for",symbol,"is",selector,", database is", db_name(selector))
