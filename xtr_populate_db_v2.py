@@ -39,7 +39,7 @@ def do_timelogging(start_time,text1="",text2="",text3=""):
     logging.info(f"Elapsed time: {hours} hours, {minutes} minutes, {seconds:.2f} seconds - {text1}/{text2}/{text3}")
 
 def secret_get_api_key():
-    api_key = "8DXUHZW7UO1P3QIM"
+    api_key = "<your_api_key"
     return api_key
 
 def sqldb_populate_with_daily_data(symbol,outputsize):
