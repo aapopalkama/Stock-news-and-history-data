@@ -62,8 +62,7 @@ def do_timelogging(start_time,text1="",text2="",text3=""):
 
 # never have your secret key like this.... do not put this to git...
 def secret_get_api_key():
-    api_key = "D3SGMGI6LOJSA5FN"
-    api_key = "<Your Api Key Here>"
+    api_key = "<your_api_key>"
     return api_key
                           
 def sqldb_populate_news(time_from,time_to,topics,limit):
